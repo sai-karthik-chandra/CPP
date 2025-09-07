@@ -1,0 +1,324 @@
+📌 C++ Notes – Declarations, Definitions, Keywords, and Best Practices
+
+🔹 1. Declaration vs Definition
+
+Declaration → Tells the compiler what exists (type/signature). No memory allocated.
+
+Definition → Actually allocates memory or provides implementation.
+
+👉 A variable/function must be declared before use and defined exactly once (ODR rule).
+
+🔹 2. Storage & Linkage Keywords
+✅ auto
+
+Local type deduction (C++11+).
+
+auto x = 5;   // deduces int
+
+
+Old C++ (pre-11): meant automatic storage duration (default for locals).
+
+✅ static
+
+Inside function → persists across calls (retains value, stored in Data segment).
+
+Inside class → shared across all objects. Needs definition outside class.
+
+class A { static int count; };
+int A::count = 0; // definition
+
+
+Global/namespace scope → internal linkage (visible only within that file).
+
+Static function → file-local function (cannot be used in other .cpp files).
+
+✅ extern
+
+Declares a variable/function defined elsewhere.
+
+Used for global variables across multiple .cpp files.
+
+// header.h
+extern int g;
+
+// file1.cpp
+int g = 10;
+
+// file2.cpp
+#include "header.h"
+void f() { cout << g; }
+
+✅ const
+
+Implies read-only after initialization.
+
+Global const → internal linkage by default (not visible across files).
+
+If you want a global constant to be shared across .cpp files → use extern const.
+
+// header.h
+extern const int SIZE;
+
+// file1.cpp
+const int SIZE = 100;
+
+
+Inside class → compile-time constant, define in-class if constexpr or static const int.
+
+✅ inline
+
+Suggests inlining function body (may or may not be done by compiler).
+
+Also changes linkage rules → allows multiple definitions across .cpp files if identical.
+👉 That’s why functions are often defined in header files if marked inline.
+
+inline int add(int a, int b) { return a + b; }
+
+✅ constexpr
+
+Compile-time constant (C++11+).
+
+Must be initialized with constant expressions.
+
+constexpr int square(int x) { return x * x; }
+
+✅ mutable
+
+Allows modification of a member variable in a const object.
+
+class A {
+    mutable int counter;
+public:
+    void f() const { counter++; }
+};
+
+✅ friend
+
+Grants another function/class access to private/protected members.
+
+Defined inside class body, but not a member.
+
+🔹 3. Functions Across Files
+Case 1: Normal free function
+
+Declare in header, define in .cpp.
+
+// header.h
+void foo();
+
+// file.cpp
+void foo() { ... }
+
+Case 2: Inline function
+
+Can be both declared & defined in header.
+
+// header.h
+inline void foo() { ... }
+
+Case 3: Static function
+
+Defined in .cpp, visible only in that file.
+
+static void helper() { ... }
+
+🔹 4. Variables Across Files
+
+Global variable (shared) → declare with extern in header, define in exactly one .cpp.
+
+Global const → needs extern if shared.
+
+Static global → file-local only.
+
+Static local → persists across calls.
+
+🔹 5. Best Practices for Projects
+
+✅ Put declarations (functions, extern variables, class definitions) in .h files.
+✅ Put definitions (function bodies, variable definitions) in .cpp files.
+✅ Use inline only for short, frequently used functions.
+✅ Avoid global variables – if needed, prefer const or constexpr.
+✅ Use static for file-local helpers, not global namespace clutter.
+✅ For constants inside classes, prefer static constexpr.
+✅ Never define non-inline functions in headers → linker errors (multiple definitions).
+✅ Use extern carefully to share globals across .cpp files.
+
+🔹 6. Interview/Quick Recall
+
+static → persistence (local), sharing (class), file scope (global).
+
+extern → declaration without definition, tells compiler variable/function is elsewhere.
+
+inline → multiple definitions allowed across TUs if identical.
+
+const vs constexpr → const runtime constant, constexpr compile-time constant.
+
+Definition vs Declaration → declaration = "what", definition = "what + storage".
+
+Headers vs Source → headers for interface, source for implementation.
+
+
+Interview Revision
+
+🔹 Declaration vs Definition
+
+Declaration: Tells the compiler about the name, type, and scope. No memory allocated.
+
+extern int x;   // declaration
+int foo(int a); // function declaration
+
+
+Definition: Allocates memory (for variables) or provides the body (for functions).
+
+int x = 10;       // definition
+int foo(int a) { return a+1; } // function definition
+
+
+💡 Rule: Every identifier must be declared before use, and defined once (ODR – One Definition Rule).
+
+🔹 Storage-Class & Qualifiers with Variables
+1. auto (modern C++ keyword for type inference)
+
+Old meaning (C++98): Automatic storage (default for local vars, redundant).
+
+Modern meaning (C++11+): Type deduction.
+
+auto x = 5;   // int
+auto y = 3.5; // double
+
+2. static
+
+Local variables: Lifetime = program (persist across calls).
+
+void foo() {
+    static int count = 0; // created once, persists
+    count++;
+}
+
+
+Global/namespace scope: Internal linkage (only visible in that translation unit).
+
+static int g = 42; // cannot be accessed from other .cpp files
+
+
+Inside class: Belongs to class, not object. Needs definition outside class.
+
+class Test { static int count; };
+int Test::count = 0; // definition
+
+3. const
+
+Local/global variables: Immutable.
+
+const int x = 10;
+
+
+Global const: By default has internal linkage (unlike normal globals).
+
+If you want to share across files → use extern.
+
+// header.h
+extern const int MAX;
+// file.cpp
+const int MAX = 100;
+
+
+In classes: Can be initialized in constructor initializer list or with static constexpr.
+
+4. extern
+
+Declares a variable/function defined elsewhere (linker will resolve).
+
+// header.h
+extern int g;
+// file.cpp
+int g = 42;
+
+5. mutable
+
+Can change member variable even in const object.
+
+class A { mutable int cache; };
+
+🔹 Functions and Keywords
+1. Normal functions
+
+Declared in .h, defined in .cpp.
+
+Good practice: declaration in header, definition in exactly one .cpp file.
+
+2. static functions
+
+At file scope: Internal linkage → visible only in that .cpp.
+
+static void helper(); // cannot be used outside
+
+3. inline functions
+
+Suggests compiler to inline.
+
+Must be defined in header (to be visible in multiple translation units).
+
+inline int add(int a, int b) { return a+b; }
+
+4. constexpr functions (C++11+)
+
+Evaluated at compile-time if arguments are constexpr.
+
+constexpr int square(int x) { return x*x; }
+
+5. friend functions
+
+Declared inside class, defined outside. Can access private members.
+
+🔹 File Organization Rules (Best Practices)
+
+Header file (.h / .hpp):
+
+Function declarations.
+
+Class/struct definitions.
+
+inline and constexpr definitions.
+
+extern variable declarations.
+
+const or constexpr globals (if truly constant).
+
+Source file (.cpp):
+
+Function definitions (non-inline).
+
+Global/static variables definitions.
+
+Out-of-class static member definitions.
+
+🔹 Interview Quick Checklist
+
+auto → type deduction (C++11+).
+
+static
+
+local → lifetime across calls
+
+global/file → internal linkage
+
+class → shared across all objects, must define outside
+
+const
+
+local/global immutable
+
+global const = internal linkage
+
+share const across files → use extern const
+
+extern → declaration for cross-file usage.
+
+inline → define in header to avoid ODR violation.
+
+static functions → file-local only.
+
+Function rules → declare in .h, define in .cpp, except inline/constexpr.
+
+One Definition Rule (ODR) → exactly one definition, multiple declarations allowed.
